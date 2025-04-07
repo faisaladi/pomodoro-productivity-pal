@@ -1,13 +1,74 @@
-// Update this page (the content is just a fallback if you fail to update the page)
+
+import React from "react";
+import Header from "@/components/Header";
+import Timer from "@/components/Timer";
+import ProjectsList from "@/components/ProjectsList";
+import DailySummary from "@/components/DailySummary";
+import { PomodoroProvider } from "@/context/PomodoroContext";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Separator } from "@/components/ui/separator";
+import { Play, Calendar, ListTodo } from "lucide-react";
 
 const Index = () => {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <div className="text-center">
-        <h1 className="text-4xl font-bold mb-4">Welcome to Your Blank App</h1>
-        <p className="text-xl text-gray-600">Start building your amazing project here!</p>
+    <PomodoroProvider>
+      <div className="container px-4 py-4 sm:px-6 max-w-6xl">
+        <Header />
+
+        <div className="grid grid-cols-1 md:grid-cols-[1fr_400px] gap-6">
+          <div>
+            <Timer />
+            
+            <div className="hidden md:block mt-8">
+              <h2 className="text-2xl font-bold mb-4">Projects</h2>
+              <ProjectsList />
+            </div>
+          </div>
+
+          <div>
+            <DailySummary />
+          </div>
+        </div>
+
+        {/* Mobile tabs for navigation */}
+        <div className="block md:hidden mt-8">
+          <Tabs defaultValue="timer">
+            <TabsList className="w-full">
+              <TabsTrigger value="timer" className="flex-1">
+                <Play className="mr-2 h-4 w-4" /> Timer
+              </TabsTrigger>
+              <TabsTrigger value="projects" className="flex-1">
+                <ListTodo className="mr-2 h-4 w-4" /> Projects
+              </TabsTrigger>
+              <TabsTrigger value="summary" className="flex-1">
+                <Calendar className="mr-2 h-4 w-4" /> Summary
+              </TabsTrigger>
+            </TabsList>
+            <TabsContent value="timer">
+              <div className="mt-4">
+                <Timer />
+              </div>
+            </TabsContent>
+            <TabsContent value="projects">
+              <div className="mt-4">
+                <ProjectsList />
+              </div>
+            </TabsContent>
+            <TabsContent value="summary">
+              <div className="mt-4">
+                <DailySummary />
+              </div>
+            </TabsContent>
+          </Tabs>
+        </div>
+
+        <Separator className="mt-8 mb-6" />
+
+        <footer className="text-center text-gray-500 text-sm">
+          <p>Pomodoro Productivity Pal &copy; {new Date().getFullYear()}</p>
+        </footer>
       </div>
-    </div>
+    </PomodoroProvider>
   );
 };
 

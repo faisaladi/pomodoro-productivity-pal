@@ -1,0 +1,366 @@
+
+import React, { createContext, useState, useContext, useEffect } from "react";
+import { toast } from "sonner";
+
+// Define our types
+export type ProjectStatus = "not-started" | "in-progress" | "completed";
+export type TimerMode = "pomodoro" | "short-break" | "long-break";
+export type ProductivityLevel = "high" | "medium" | "low" | "distracted";
+
+export interface Project {
+  id: string;
+  name: string;
+  tasks: Task[];
+  totalWorkTime: number; // in seconds
+}
+
+export interface Task {
+  id: string;
+  name: string;
+  status: ProjectStatus;
+  projectId: string;
+  totalWorkTime: number; // in seconds
+}
+
+export interface PomodoroSession {
+  id: string;
+  taskId: string | null;
+  projectId: string | null;
+  startTime: number; // timestamp
+  endTime: number | null; // timestamp
+  duration: number; // in seconds
+  productivityLevel: ProductivityLevel | null;
+  isDistracted: boolean;
+  mode: TimerMode;
+}
+
+interface PomodoroContextType {
+  // Timer settings
+  timerMode: TimerMode;
+  setTimerMode: (mode: TimerMode) => void;
+  isRunning: boolean;
+  setIsRunning: (isRunning: boolean) => void;
+  timeRemaining: number;
+  setTimeRemaining: (time: number) => void;
+  
+  // Settings
+  pomodoroTime: number;
+  shortBreakTime: number;
+  longBreakTime: number;
+  
+  // Projects and tasks
+  projects: Project[];
+  addProject: (name: string) => void;
+  addTask: (projectId: string, name: string) => void;
+  currentProject: Project | null;
+  setCurrentProject: (project: Project | null) => void;
+  currentTask: Task | null;
+  setCurrentTask: (task: Task | null) => void;
+  
+  // Session management
+  currentSession: PomodoroSession | null;
+  startSession: (projectId: string | null, taskId: string | null) => void;
+  pauseSession: () => void;
+  resumeSession: () => void;
+  endSession: (productivityLevel: ProductivityLevel, isDistracted: boolean) => void;
+  
+  // Session history
+  sessionHistory: PomodoroSession[];
+  
+  // Daily summary
+  getDailySummary: () => {
+    totalSessions: number;
+    totalWorkTime: number;
+    productivityBreakdown: Record<ProductivityLevel, number>;
+    projectBreakdown: { projectId: string; projectName: string; time: number }[];
+  };
+}
+
+const PomodoroContext = createContext<PomodoroContextType | undefined>(undefined);
+
+// Default times
+const DEFAULT_POMODORO_TIME = 25 * 60; // 25 minutes in seconds
+const DEFAULT_SHORT_BREAK_TIME = 5 * 60; // 5 minutes in seconds
+const DEFAULT_LONG_BREAK_TIME = 15 * 60; // 15 minutes in seconds
+
+export const PomodoroProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  // Timer state
+  const [timerMode, setTimerMode] = useState<TimerMode>("pomodoro");
+  const [isRunning, setIsRunning] = useState(false);
+  const [timeRemaining, setTimeRemaining] = useState(DEFAULT_POMODORO_TIME);
+  
+  // Settings
+  const [pomodoroTime] = useState(DEFAULT_POMODORO_TIME);
+  const [shortBreakTime] = useState(DEFAULT_SHORT_BREAK_TIME);
+  const [longBreakTime] = useState(DEFAULT_LONG_BREAK_TIME);
+  
+  // Projects and tasks
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [currentProject, setCurrentProject] = useState<Project | null>(null);
+  const [currentTask, setCurrentTask] = useState<Task | null>(null);
+  
+  // Session management
+  const [currentSession, setCurrentSession] = useState<PomodoroSession | null>(null);
+  const [sessionHistory, setSessionHistory] = useState<PomodoroSession[]>([]);
+  
+  // Effect to update timer when mode changes
+  useEffect(() => {
+    switch (timerMode) {
+      case "pomodoro":
+        setTimeRemaining(pomodoroTime);
+        break;
+      case "short-break":
+        setTimeRemaining(shortBreakTime);
+        break;
+      case "long-break":
+        setTimeRemaining(longBreakTime);
+        break;
+    }
+  }, [timerMode, pomodoroTime, shortBreakTime, longBreakTime]);
+  
+  // Timer countdown effect
+  useEffect(() => {
+    let intervalId: number | undefined;
+    
+    if (isRunning && timeRemaining > 0) {
+      intervalId = window.setInterval(() => {
+        setTimeRemaining((prevTime) => prevTime - 1);
+      }, 1000);
+    } else if (timeRemaining === 0 && isRunning) {
+      if (currentSession && timerMode === "pomodoro") {
+        // Notify user that the session is over
+        notifySessionEnd();
+        setIsRunning(false);
+      }
+    }
+    
+    return () => {
+      if (intervalId) clearInterval(intervalId);
+    };
+  }, [isRunning, timeRemaining, timerMode, currentSession]);
+  
+  // Show notification when session ends
+  const notifySessionEnd = () => {
+    if (Notification.permission === "granted") {
+      new Notification("Pomodoro Timer Finished", {
+        body: "Time for a break!",
+        icon: "/favicon.ico",
+      });
+    }
+    
+    toast("Pomodoro session complete!", {
+      description: "Time for a break!",
+      duration: 5000,
+    });
+  };
+  
+  // Project and task management
+  const addProject = (name: string) => {
+    const newProject: Project = {
+      id: Date.now().toString(),
+      name,
+      tasks: [],
+      totalWorkTime: 0,
+    };
+    
+    setProjects((prevProjects) => [...prevProjects, newProject]);
+    return newProject;
+  };
+  
+  const addTask = (projectId: string, name: string) => {
+    const newTask: Task = {
+      id: Date.now().toString(),
+      name,
+      status: "not-started",
+      projectId,
+      totalWorkTime: 0,
+    };
+    
+    setProjects((prevProjects) =>
+      prevProjects.map((project) => {
+        if (project.id === projectId) {
+          return {
+            ...project,
+            tasks: [...project.tasks, newTask],
+          };
+        }
+        return project;
+      })
+    );
+    
+    return newTask;
+  };
+  
+  // Session management
+  const startSession = (projectId: string | null, taskId: string | null) => {
+    const session: PomodoroSession = {
+      id: Date.now().toString(),
+      projectId,
+      taskId,
+      startTime: Date.now(),
+      endTime: null,
+      duration: 0,
+      productivityLevel: null,
+      isDistracted: false,
+      mode: timerMode,
+    };
+    
+    setCurrentSession(session);
+    setIsRunning(true);
+    
+    // Request notification permission if needed
+    if (Notification.permission !== "granted" && Notification.permission !== "denied") {
+      Notification.requestPermission();
+    }
+  };
+  
+  const pauseSession = () => {
+    setIsRunning(false);
+  };
+  
+  const resumeSession = () => {
+    setIsRunning(true);
+  };
+  
+  const endSession = (productivityLevel: ProductivityLevel, isDistracted: boolean) => {
+    if (!currentSession) return;
+    
+    const endTime = Date.now();
+    const duration = Math.floor((endTime - currentSession.startTime) / 1000);
+    
+    const completedSession: PomodoroSession = {
+      ...currentSession,
+      endTime,
+      duration,
+      productivityLevel,
+      isDistracted,
+    };
+    
+    setSessionHistory((prev) => [...prev, completedSession]);
+    
+    // Update project and task work time
+    if (completedSession.projectId) {
+      setProjects((prevProjects) =>
+        prevProjects.map((project) => {
+          if (project.id === completedSession.projectId) {
+            // Update project total work time
+            const updatedProject = {
+              ...project,
+              totalWorkTime: project.totalWorkTime + duration,
+            };
+            
+            // Update task if it exists
+            if (completedSession.taskId) {
+              updatedProject.tasks = project.tasks.map((task) => {
+                if (task.id === completedSession.taskId) {
+                  return {
+                    ...task,
+                    totalWorkTime: task.totalWorkTime + duration,
+                    status: "in-progress",
+                  };
+                }
+                return task;
+              });
+            }
+            
+            return updatedProject;
+          }
+          return project;
+        })
+      );
+    }
+    
+    setCurrentSession(null);
+    setIsRunning(false);
+    setTimerMode("pomodoro");
+    setTimeRemaining(pomodoroTime);
+  };
+  
+  // Daily summary
+  const getDailySummary = () => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    const todaySessions = sessionHistory.filter(
+      (session) => new Date(session.startTime).getTime() >= today.getTime()
+    );
+    
+    const totalSessions = todaySessions.length;
+    const totalWorkTime = todaySessions.reduce((sum, session) => sum + session.duration, 0);
+    
+    // Productivity breakdown
+    const productivityBreakdown = todaySessions.reduce<Record<ProductivityLevel, number>>(
+      (acc, session) => {
+        if (session.productivityLevel) {
+          acc[session.productivityLevel] = (acc[session.productivityLevel] || 0) + 1;
+        }
+        return acc;
+      },
+      { high: 0, medium: 0, low: 0, distracted: 0 }
+    );
+    
+    // Project breakdown
+    const projectTimeMap = new Map<string, number>();
+    
+    todaySessions.forEach((session) => {
+      if (session.projectId) {
+        const currentTime = projectTimeMap.get(session.projectId) || 0;
+        projectTimeMap.set(session.projectId, currentTime + session.duration);
+      }
+    });
+    
+    const projectBreakdown = Array.from(projectTimeMap.entries()).map(([projectId, time]) => {
+      const project = projects.find((p) => p.id === projectId);
+      return {
+        projectId,
+        projectName: project ? project.name : "Unknown Project",
+        time,
+      };
+    });
+    
+    return {
+      totalSessions,
+      totalWorkTime,
+      productivityBreakdown,
+      projectBreakdown,
+    };
+  };
+  
+  const value = {
+    timerMode,
+    setTimerMode,
+    isRunning,
+    setIsRunning,
+    timeRemaining,
+    setTimeRemaining,
+    pomodoroTime,
+    shortBreakTime,
+    longBreakTime,
+    projects,
+    addProject,
+    addTask,
+    currentProject,
+    setCurrentProject,
+    currentTask,
+    setCurrentTask,
+    currentSession,
+    startSession,
+    pauseSession,
+    resumeSession,
+    endSession,
+    sessionHistory,
+    getDailySummary,
+  };
+  
+  return <PomodoroContext.Provider value={value}>{children}</PomodoroContext.Provider>;
+};
+
+export const usePomodoroContext = () => {
+  const context = useContext(PomodoroContext);
+  
+  if (context === undefined) {
+    throw new Error("usePomodoroContext must be used within a PomodoroProvider");
+  }
+  
+  return context;
+};

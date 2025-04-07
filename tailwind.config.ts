@@ -1,3 +1,4 @@
+
 import type { Config } from "tailwindcss";
 
 export default {
@@ -61,6 +62,23 @@ export default {
 					'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
+				},
+				tomato: {
+					50: '#fff5f5',
+					100: '#ffe3e3',
+					200: '#ffc9c9',
+					300: '#ffa8a8',
+					400: '#ff8080',
+					500: '#ff5252',
+					600: '#ff3333',
+					700: '#e53935',
+					800: '#c62828',
+					900: '#b71c1c',
+				},
+				productivity: {
+					high: '#4ade80',  // green
+					medium: '#facc15', // yellow
+					low: '#f87171',    // red
 				}
 			},
 			borderRadius: {
@@ -84,11 +102,22 @@ export default {
 					to: {
 						height: '0'
 					}
+				},
+				'ping': {
+					'0%, 100%': {
+						transform: 'scale(1)',
+						opacity: '1'
+					},
+					'50%': {
+						transform: 'scale(1.1)',
+						opacity: '0.8'
+					}
 				}
 			},
 			animation: {
 				'accordion-down': 'accordion-down 0.2s ease-out',
-				'accordion-up': 'accordion-up 0.2s ease-out'
+				'accordion-up': 'accordion-up 0.2s ease-out',
+				'ping-slow': 'ping 2s cubic-bezier(0, 0, 0.2, 1) infinite'
 			}
 		}
 	},
