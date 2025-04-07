@@ -2,14 +2,10 @@
 import React from "react";
 import { Bell } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { usePomodoroContext } from "@/context/PomodoroContext";
 
 const Header = () => {
-  // Request notification permissions if not already granted
-  const requestNotificationPermission = () => {
-    if (Notification.permission !== "granted") {
-      Notification.requestPermission();
-    }
-  };
+  const { requestNotificationPermission } = usePomodoroContext();
 
   return (
     <header className="flex items-center justify-between py-4 mb-6">

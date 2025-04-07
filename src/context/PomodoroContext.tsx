@@ -74,6 +74,9 @@ interface PomodoroContextType {
     productivityBreakdown: Record<ProductivityLevel, number>;
     projectBreakdown: { projectId: string; projectName: string; time: number }[];
   };
+
+  // Notifications
+  requestNotificationPermission: () => void;
 }
 
 const PomodoroContext = createContext<PomodoroContextType | undefined>(undefined);
@@ -83,25 +86,73 @@ const DEFAULT_POMODORO_TIME = 25 * 60; // 25 minutes in seconds
 const DEFAULT_SHORT_BREAK_TIME = 5 * 60; // 5 minutes in seconds
 const DEFAULT_LONG_BREAK_TIME = 15 * 60; // 15 minutes in seconds
 
+// Local storage keys
+const STORAGE_KEYS = {
+  PROJECTS: 'pomodoro_projects',
+  SESSION_HISTORY: 'pomodoro_session_history',
+  SETTINGS: 'pomodoro_settings'
+};
+
 export const PomodoroProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  // Load data from local storage
+  const loadProjects = (): Project[] => {
+    const storedProjects = localStorage.getItem(STORAGE_KEYS.PROJECTS);
+    return storedProjects ? JSON.parse(storedProjects) : [];
+  };
+
+  const loadSessionHistory = (): PomodoroSession[] => {
+    const storedHistory = localStorage.getItem(STORAGE_KEYS.SESSION_HISTORY);
+    return storedHistory ? JSON.parse(storedHistory) : [];
+  };
+
+  const loadSettings = () => {
+    const storedSettings = localStorage.getItem(STORAGE_KEYS.SETTINGS);
+    if (storedSettings) {
+      return JSON.parse(storedSettings);
+    }
+    return {
+      pomodoroTime: DEFAULT_POMODORO_TIME,
+      shortBreakTime: DEFAULT_SHORT_BREAK_TIME,
+      longBreakTime: DEFAULT_LONG_BREAK_TIME
+    };
+  };
+
   // Timer state
   const [timerMode, setTimerMode] = useState<TimerMode>("pomodoro");
   const [isRunning, setIsRunning] = useState(false);
   const [timeRemaining, setTimeRemaining] = useState(DEFAULT_POMODORO_TIME);
   
   // Settings
-  const [pomodoroTime] = useState(DEFAULT_POMODORO_TIME);
-  const [shortBreakTime] = useState(DEFAULT_SHORT_BREAK_TIME);
-  const [longBreakTime] = useState(DEFAULT_LONG_BREAK_TIME);
+  const settings = loadSettings();
+  const [pomodoroTime] = useState(settings.pomodoroTime);
+  const [shortBreakTime] = useState(settings.shortBreakTime);
+  const [longBreakTime] = useState(settings.longBreakTime);
   
   // Projects and tasks
-  const [projects, setProjects] = useState<Project[]>([]);
+  const [projects, setProjects] = useState<Project[]>(loadProjects());
   const [currentProject, setCurrentProject] = useState<Project | null>(null);
   const [currentTask, setCurrentTask] = useState<Task | null>(null);
   
   // Session management
   const [currentSession, setCurrentSession] = useState<PomodoroSession | null>(null);
-  const [sessionHistory, setSessionHistory] = useState<PomodoroSession[]>([]);
+  const [sessionHistory, setSessionHistory] = useState<PomodoroSession[]>(loadSessionHistory());
+
+  // Save data to local storage when it changes
+  useEffect(() => {
+    localStorage.setItem(STORAGE_KEYS.PROJECTS, JSON.stringify(projects));
+  }, [projects]);
+
+  useEffect(() => {
+    localStorage.setItem(STORAGE_KEYS.SESSION_HISTORY, JSON.stringify(sessionHistory));
+  }, [sessionHistory]);
+
+  useEffect(() => {
+    localStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify({
+      pomodoroTime,
+      shortBreakTime,
+      longBreakTime
+    }));
+  }, [pomodoroTime, shortBreakTime, longBreakTime]);
   
   // Effect to update timer when mode changes
   useEffect(() => {
@@ -138,6 +189,17 @@ export const PomodoroProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       if (intervalId) clearInterval(intervalId);
     };
   }, [isRunning, timeRemaining, timerMode, currentSession]);
+  
+  // Request notification permission
+  const requestNotificationPermission = () => {
+    if (Notification.permission !== "granted" && Notification.permission !== "denied") {
+      Notification.requestPermission().then(permission => {
+        if (permission === "granted") {
+          toast.success("Notifications enabled!");
+        }
+      });
+    }
+  };
   
   // Show notification when session ends
   const notifySessionEnd = () => {
@@ -350,6 +412,7 @@ export const PomodoroProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     endSession,
     sessionHistory,
     getDailySummary,
+    requestNotificationPermission,
   };
   
   return <PomodoroContext.Provider value={value}>{children}</PomodoroContext.Provider>;
