@@ -19,6 +19,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
 import { 
   Play, 
   Plus,
@@ -165,6 +166,23 @@ const ProjectsList = () => {
     toast.success(`Task marked as ${status}`);
   };
 
+  // New function to handle project completion via checkbox
+  const handleProjectCompletion = (projectId: string, isCompleted: boolean) => {
+    const status = isCompleted ? "completed" : "not-started";
+    
+    // Update the status of all tasks in the project
+    const project = projects.find(p => p.id === projectId);
+    if (project) {
+      project.tasks.forEach(task => {
+        updateTaskStatus(projectId, task.id, status);
+      });
+      
+      toast.success(isCompleted ? 
+        "Project marked as completed" : 
+        "Project marked as not started");
+    }
+  };
+
   return (
     <div className="w-full">
       <div className="flex justify-between items-center mb-4">
@@ -190,11 +208,13 @@ const ProjectsList = () => {
           <Table>
             <TableHeader>
               <TableRow>
+                <TableHead className="w-[50px]">Done</TableHead>
                 <TableHead className="w-[180px]">Project</TableHead>
                 <TableHead>Task</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead className="text-right">Time</TableHead>
-                <TableHead className="w-[100px]">Actions</TableHead>
+                <TableHead className="w-[60px]">Play</TableHead>
+                <TableHead className="w-[60px]">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -206,6 +226,14 @@ const ProjectsList = () => {
                       "bg-muted/50" : "hover:bg-muted/30"}
                     onClick={() => handleSelectProject(project)}
                   >
+                    <TableCell className="text-center" onClick={(e) => e.stopPropagation()}>
+                      <Checkbox 
+                        checked={project.tasks.length > 0 && project.tasks.every(t => t.status === "completed")}
+                        onCheckedChange={(checked) => {
+                          handleProjectCompletion(project.id, checked === true);
+                        }}
+                      />
+                    </TableCell>
                     <TableCell className="font-medium">{project.name}</TableCell>
                     <TableCell>
                       <Button 
@@ -221,13 +249,29 @@ const ProjectsList = () => {
                       </Button>
                     </TableCell>
                     <TableCell>
-                      {project.tasks.some(t => t.status === "in-progress") ? "In Progress" : "Not Started"}
+                      {project.tasks.some(t => t.status === "completed") && project.tasks.every(t => t.status === "completed") 
+                        ? "Completed" 
+                        : project.tasks.some(t => t.status === "in-progress") 
+                          ? "In Progress" 
+                          : "Not Started"}
                     </TableCell>
                     <TableCell className="text-right">
                       <span className="flex items-center justify-end">
                         <Clock size={14} className="mr-1" />
                         {formatDuration(project.totalWorkTime)}
                       </span>
+                    </TableCell>
+                    <TableCell>
+                      <Button 
+                        variant="ghost" 
+                        size="icon" 
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleStartTimer(project);
+                        }}
+                      >
+                        <Play className="h-4 w-4" />
+                      </Button>
                     </TableCell>
                     <TableCell>
                       <DropdownMenu>
@@ -237,12 +281,6 @@ const ProjectsList = () => {
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end" className="bg-popover">
-                          <DropdownMenuItem onClick={(e) => {
-                            e.stopPropagation();
-                            handleStartTimer(project);
-                          }}>
-                            <Play className="mr-2 h-4 w-4" /> Start Timer
-                          </DropdownMenuItem>
                           <DropdownMenuItem onClick={(e) => {
                             e.stopPropagation();
                             openEditProject(project);
@@ -267,9 +305,21 @@ const ProjectsList = () => {
                     <TableRow 
                       key={task.id}
                       className={(currentTask && currentTask.id === task.id) ? 
-                        "bg-muted/50" : "hover:bg-muted/30 pl-4"}
+                        "bg-muted/50" : "hover:bg-muted/30"}
                       onClick={() => handleSelectTask(project, task)}
                     >
+                      <TableCell className="text-center" onClick={(e) => e.stopPropagation()}>
+                        <Checkbox 
+                          checked={task.status === "completed"}
+                          onCheckedChange={(checked) => {
+                            handleUpdateTaskStatus(
+                              project.id, 
+                              task.id, 
+                              checked === true ? "completed" : "not-started"
+                            );
+                          }}
+                        />
+                      </TableCell>
                       <TableCell className="pl-8">└</TableCell>
                       <TableCell className="font-medium">{task.name}</TableCell>
                       <TableCell>
@@ -309,6 +359,18 @@ const ProjectsList = () => {
                         </span>
                       </TableCell>
                       <TableCell>
+                        <Button 
+                          variant="ghost" 
+                          size="icon" 
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleStartTimer(project, task);
+                          }}
+                        >
+                          <Play className="h-4 w-4" />
+                        </Button>
+                      </TableCell>
+                      <TableCell>
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
                             <Button variant="ghost" size="icon">
@@ -316,12 +378,6 @@ const ProjectsList = () => {
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end" className="bg-popover">
-                            <DropdownMenuItem onClick={(e) => {
-                              e.stopPropagation();
-                              handleStartTimer(project, task);
-                            }}>
-                              <Play className="mr-2 h-4 w-4" /> Start Timer
-                            </DropdownMenuItem>
                             <DropdownMenuItem onClick={(e) => {
                               e.stopPropagation();
                               openEditTask(project.id, task);

@@ -18,49 +18,51 @@ const Index = () => {
       <div className="container px-4 py-4 sm:px-6 max-w-6xl">
         <Header />
 
-        {!isMobile ? (
-          <div className="grid grid-cols-1 lg:grid-cols-[1fr_400px] md:grid-cols-1 gap-6">
-            <div>
-              <Timer />
-              <div className="mt-8">
-                <ProjectsList />
-              </div>
-            </div>
-
-            <div>
-              <DailySummary />
-            </div>
-          </div>
-        ) : (
-          <Tabs defaultValue="timer">
-            <TabsList className="w-full">
-              <TabsTrigger value="timer" className="flex-1">
-                <Play className="mr-2 h-4 w-4" /> Timer
-              </TabsTrigger>
-              <TabsTrigger value="projects" className="flex-1">
-                <ListTodo className="mr-2 h-4 w-4" /> Projects
-              </TabsTrigger>
-              <TabsTrigger value="summary" className="flex-1">
-                <Calendar className="mr-2 h-4 w-4" /> Summary
-              </TabsTrigger>
-            </TabsList>
-            <TabsContent value="timer">
-              <div className="mt-4">
+        <div className="mt-4">
+          {!isMobile ? (
+            <div className="grid grid-cols-1 lg:grid-cols-[1fr_400px] gap-6">
+              <div>
                 <Timer />
+                <div className="mt-8">
+                  <ProjectsList />
+                </div>
               </div>
-            </TabsContent>
-            <TabsContent value="projects">
-              <div className="mt-4">
-                <ProjectsList />
-              </div>
-            </TabsContent>
-            <TabsContent value="summary">
-              <div className="mt-4">
+
+              <div>
                 <DailySummary />
               </div>
-            </TabsContent>
-          </Tabs>
-        )}
+            </div>
+          ) : (
+            <Tabs defaultValue="timer">
+              <TabsList className="w-full">
+                <TabsTrigger value="timer" className="flex-1">
+                  <Play className="mr-2 h-4 w-4" /> Timer
+                </TabsTrigger>
+                <TabsTrigger value="projects" className="flex-1">
+                  <ListTodo className="mr-2 h-4 w-4" /> Projects
+                </TabsTrigger>
+                <TabsTrigger value="summary" className="flex-1">
+                  <Calendar className="mr-2 h-4 w-4" /> Summary
+                </TabsTrigger>
+              </TabsList>
+              <TabsContent value="timer">
+                <div className="mt-4">
+                  <Timer />
+                </div>
+              </TabsContent>
+              <TabsContent value="projects">
+                <div className="mt-4">
+                  <ProjectsList />
+                </div>
+              </TabsContent>
+              <TabsContent value="summary">
+                <div className="mt-4">
+                  <DailySummary />
+                </div>
+              </TabsContent>
+            </Tabs>
+          )}
+        </div>
 
         <Separator className="mt-8 mb-6" />
 
