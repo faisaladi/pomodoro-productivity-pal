@@ -19,7 +19,7 @@ const Index = () => {
         <Header />
 
         {!isMobile ? (
-          <div className="grid grid-cols-1 md:grid-cols-[1fr_400px] gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-[1fr_400px] md:grid-cols-1 gap-6">
             <div>
               <Timer />
               <div className="mt-8">

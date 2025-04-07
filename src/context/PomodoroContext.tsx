@@ -50,9 +50,12 @@ interface PomodoroContextType {
   // Projects and tasks
   projects: Project[];
   addProject: (name: string) => void;
+  updateProject: (projectId: string, name: string) => void;
   addTask: (projectId: string, name: string) => void;
+  updateTask: (projectId: string, taskId: string, name: string) => void;
   updateTaskStatus: (projectId: string, taskId: string, status: ProjectStatus) => void;
   deleteTask: (projectId: string, taskId: string) => void;
+  deleteProject: (projectId: string) => void;
   currentProject: Project | null;
   setCurrentProject: (project: Project | null) => void;
   currentTask: Task | null;
@@ -229,6 +232,32 @@ export const PomodoroProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     setProjects((prevProjects) => [...prevProjects, newProject]);
     return newProject;
   };
+
+  const updateProject = (projectId: string, name: string) => {
+    setProjects((prevProjects) =>
+      prevProjects.map((project) => {
+        if (project.id === projectId) {
+          return {
+            ...project,
+            name,
+          };
+        }
+        return project;
+      })
+    );
+  };
+
+  const deleteProject = (projectId: string) => {
+    // If the project being deleted is the current project, clear it
+    if (currentProject && currentProject.id === projectId) {
+      setCurrentProject(null);
+      setCurrentTask(null);
+    }
+    
+    setProjects((prevProjects) => 
+      prevProjects.filter((project) => project.id !== projectId)
+    );
+  };
   
   const addTask = (projectId: string, name: string) => {
     const newTask: Task = {
@@ -252,6 +281,28 @@ export const PomodoroProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     );
     
     return newTask;
+  };
+
+  const updateTask = (projectId: string, taskId: string, name: string) => {
+    setProjects((prevProjects) =>
+      prevProjects.map((project) => {
+        if (project.id === projectId) {
+          return {
+            ...project,
+            tasks: project.tasks.map((task) => {
+              if (task.id === taskId) {
+                return {
+                  ...task,
+                  name,
+                };
+              }
+              return task;
+            }),
+          };
+        }
+        return project;
+      })
+    );
   };
   
   const updateTaskStatus = (projectId: string, taskId: string, status: ProjectStatus) => {
@@ -442,7 +493,10 @@ export const PomodoroProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     longBreakTime,
     projects,
     addProject,
+    updateProject,
+    deleteProject,
     addTask,
+    updateTask,
     updateTaskStatus,
     deleteTask,
     currentProject,

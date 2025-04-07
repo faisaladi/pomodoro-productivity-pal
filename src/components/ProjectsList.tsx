@@ -21,11 +21,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { 
   Play, 
-  Plus, 
+  Plus,
   Clock, 
-  Trash2, 
+  Trash2,
+  Pencil,
   Check,
-  X
+  X,
+  MoreVertical
 } from "lucide-react";
 import { usePomodoroContext, Project, Task, ProjectStatus } from "@/context/PomodoroContext";
 import { formatDuration } from "@/lib/utils/timer";
@@ -41,8 +43,11 @@ import { toast } from "sonner";
 const ProjectsList = () => {
   const { 
     projects, 
-    addProject, 
+    addProject,
+    updateProject,
+    deleteProject,
     addTask,
+    updateTask,
     updateTaskStatus,
     deleteTask,
     currentProject,
@@ -56,8 +61,14 @@ const ProjectsList = () => {
 
   const [isAddProjectOpen, setIsAddProjectOpen] = useState(false);
   const [isAddTaskOpen, setIsAddTaskOpen] = useState(false);
+  const [isEditProjectOpen, setIsEditProjectOpen] = useState(false);
+  const [isEditTaskOpen, setIsEditTaskOpen] = useState(false);
   const [newProjectName, setNewProjectName] = useState("");
   const [newTaskName, setNewTaskName] = useState("");
+  const [editProjectName, setEditProjectName] = useState("");
+  const [editProjectId, setEditProjectId] = useState<string | null>(null);
+  const [editTaskName, setEditTaskName] = useState("");
+  const [editTaskId, setEditTaskId] = useState<string | null>(null);
   const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
   const isMobile = useIsMobile();
 
@@ -66,7 +77,23 @@ const ProjectsList = () => {
       addProject(newProjectName.trim());
       setNewProjectName("");
       setIsAddProjectOpen(false);
+      toast.success("Project added successfully");
     }
+  };
+
+  const handleEditProject = () => {
+    if (editProjectName.trim() && editProjectId) {
+      updateProject(editProjectId, editProjectName.trim());
+      setEditProjectName("");
+      setEditProjectId(null);
+      setIsEditProjectOpen(false);
+      toast.success("Project updated successfully");
+    }
+  };
+
+  const handleDeleteProject = (projectId: string) => {
+    deleteProject(projectId);
+    toast.success("Project deleted successfully");
   };
 
   const handleAddTask = () => {
@@ -74,7 +101,31 @@ const ProjectsList = () => {
       addTask(selectedProjectId, newTaskName.trim());
       setNewTaskName("");
       setIsAddTaskOpen(false);
+      toast.success("Task added successfully");
     }
+  };
+
+  const handleEditTask = () => {
+    if (editTaskName.trim() && editTaskId && selectedProjectId) {
+      updateTask(selectedProjectId, editTaskId, editTaskName.trim());
+      setEditTaskName("");
+      setEditTaskId(null);
+      setIsEditTaskOpen(false);
+      toast.success("Task updated successfully");
+    }
+  };
+
+  const openEditProject = (project: Project) => {
+    setEditProjectId(project.id);
+    setEditProjectName(project.name);
+    setIsEditProjectOpen(true);
+  };
+
+  const openEditTask = (projectId: string, task: Task) => {
+    setSelectedProjectId(projectId);
+    setEditTaskId(task.id);
+    setEditTaskName(task.name);
+    setIsEditTaskOpen(true);
   };
 
   const handleSelectProject = (project: Project) => {
@@ -179,16 +230,35 @@ const ProjectsList = () => {
                       </span>
                     </TableCell>
                     <TableCell>
-                      <Button 
-                        variant="ghost" 
-                        size="icon" 
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleStartTimer(project);
-                        }}
-                      >
-                        <Play className="h-4 w-4" />
-                      </Button>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
+                          <Button variant="ghost" size="icon">
+                            <MoreVertical className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="bg-popover">
+                          <DropdownMenuItem onClick={(e) => {
+                            e.stopPropagation();
+                            handleStartTimer(project);
+                          }}>
+                            <Play className="mr-2 h-4 w-4" /> Start Timer
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={(e) => {
+                            e.stopPropagation();
+                            openEditProject(project);
+                          }}>
+                            <Pencil className="mr-2 h-4 w-4" /> Edit
+                          </DropdownMenuItem>
+                          <DropdownMenuItem 
+                            className="text-destructive focus:text-destructive"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleDeleteProject(project.id);
+                            }}>
+                            <Trash2 className="mr-2 h-4 w-4" /> Delete
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
                     </TableCell>
                   </TableRow>
 
@@ -210,7 +280,7 @@ const ProjectsList = () => {
                                task.status === "in-progress" ? "In Progress" : "Completed"}
                             </Button>
                           </DropdownMenuTrigger>
-                          <DropdownMenuContent>
+                          <DropdownMenuContent className="bg-popover">
                             <DropdownMenuItem onClick={(e) => {
                               e.stopPropagation();
                               handleUpdateTaskStatus(project.id, task.id, "not-started");
@@ -239,29 +309,35 @@ const ProjectsList = () => {
                         </span>
                       </TableCell>
                       <TableCell>
-                        <div className="flex">
-                          <Button 
-                            variant="ghost" 
-                            size="icon" 
-                            onClick={(e) => {
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
+                            <Button variant="ghost" size="icon">
+                              <MoreVertical className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end" className="bg-popover">
+                            <DropdownMenuItem onClick={(e) => {
                               e.stopPropagation();
                               handleStartTimer(project, task);
-                            }}
-                          >
-                            <Play className="h-4 w-4" />
-                          </Button>
-                          <Button 
-                            variant="ghost" 
-                            size="icon"
-                            className="text-red-500 hover:text-red-700"
-                            onClick={(e) => {
+                            }}>
+                              <Play className="mr-2 h-4 w-4" /> Start Timer
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={(e) => {
                               e.stopPropagation();
-                              handleDeleteTask(project.id, task.id);
-                            }}
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </div>
+                              openEditTask(project.id, task);
+                            }}>
+                              <Pencil className="mr-2 h-4 w-4" /> Edit
+                            </DropdownMenuItem>
+                            <DropdownMenuItem 
+                              className="text-destructive focus:text-destructive"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleDeleteTask(project.id, task.id);
+                              }}>
+                              <Trash2 className="mr-2 h-4 w-4" /> Delete
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
                       </TableCell>
                     </TableRow>
                   ))}
@@ -298,6 +374,32 @@ const ProjectsList = () => {
         </DialogContent>
       </Dialog>
 
+      {/* Edit Project Dialog */}
+      <Dialog open={isEditProjectOpen} onOpenChange={setIsEditProjectOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edit Project</DialogTitle>
+            <DialogDescription>Update the project details</DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div>
+              <Label htmlFor="editProjectName">Project Name</Label>
+              <Input 
+                id="editProjectName" 
+                value={editProjectName} 
+                onChange={(e) => setEditProjectName(e.target.value)} 
+                placeholder="Enter project name"
+                className="mt-1"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsEditProjectOpen(false)}>Cancel</Button>
+            <Button onClick={handleEditProject}>Update Project</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       {/* Add Task Dialog */}
       <Dialog open={isAddTaskOpen} onOpenChange={setIsAddTaskOpen}>
         <DialogContent>
@@ -320,6 +422,32 @@ const ProjectsList = () => {
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsAddTaskOpen(false)}>Cancel</Button>
             <Button onClick={handleAddTask}>Add Task</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Task Dialog */}
+      <Dialog open={isEditTaskOpen} onOpenChange={setIsEditTaskOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edit Task</DialogTitle>
+            <DialogDescription>Update the task details</DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div>
+              <Label htmlFor="editTaskName">Task Name</Label>
+              <Input 
+                id="editTaskName" 
+                value={editTaskName} 
+                onChange={(e) => setEditTaskName(e.target.value)} 
+                placeholder="Enter task name"
+                className="mt-1"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsEditTaskOpen(false)}>Cancel</Button>
+            <Button onClick={handleEditTask}>Update Task</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
