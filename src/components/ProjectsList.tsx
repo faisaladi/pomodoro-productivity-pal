@@ -19,15 +19,32 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Play, Plus, Clock } from "lucide-react";
-import { usePomodoroContext, Project, Task } from "@/context/PomodoroContext";
+import { 
+  Play, 
+  Plus, 
+  Clock, 
+  Trash2, 
+  Check,
+  X
+} from "lucide-react";
+import { usePomodoroContext, Project, Task, ProjectStatus } from "@/context/PomodoroContext";
 import { formatDuration } from "@/lib/utils/timer";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { 
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { toast } from "sonner";
 
 const ProjectsList = () => {
   const { 
     projects, 
     addProject, 
-    addTask, 
+    addTask,
+    updateTaskStatus,
+    deleteTask,
     currentProject,
     setCurrentProject,
     currentTask,
@@ -42,6 +59,7 @@ const ProjectsList = () => {
   const [newProjectName, setNewProjectName] = useState("");
   const [newTaskName, setNewTaskName] = useState("");
   const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
+  const isMobile = useIsMobile();
 
   const handleAddProject = () => {
     if (newProjectName.trim()) {
@@ -85,11 +103,21 @@ const ProjectsList = () => {
       startSession(project.id, task?.id || null);
     }
   };
+  
+  const handleDeleteTask = (projectId: string, taskId: string) => {
+    deleteTask(projectId, taskId);
+    toast.success("Task deleted successfully");
+  };
+  
+  const handleUpdateTaskStatus = (projectId: string, taskId: string, status: ProjectStatus) => {
+    updateTaskStatus(projectId, taskId, status);
+    toast.success(`Task marked as ${status}`);
+  };
 
   return (
     <div className="w-full">
       <div className="flex justify-between items-center mb-4">
-        <h2 className="text-2xl font-bold">Projects</h2>
+        {!isMobile && <h2 className="text-2xl font-bold">Projects</h2>}
         <Button onClick={() => setIsAddProjectOpen(true)}>
           <Plus className="mr-2 h-4 w-4" /> Add Project
         </Button>
@@ -175,8 +203,34 @@ const ProjectsList = () => {
                       <TableCell className="pl-8">└</TableCell>
                       <TableCell className="font-medium">{task.name}</TableCell>
                       <TableCell>
-                        {task.status === "not-started" ? "Not Started" : 
-                         task.status === "in-progress" ? "In Progress" : "Completed"}
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
+                            <Button variant="ghost" size="sm" className="h-8 text-xs">
+                              {task.status === "not-started" ? "Not Started" : 
+                               task.status === "in-progress" ? "In Progress" : "Completed"}
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent>
+                            <DropdownMenuItem onClick={(e) => {
+                              e.stopPropagation();
+                              handleUpdateTaskStatus(project.id, task.id, "not-started");
+                            }}>
+                              Not Started
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={(e) => {
+                              e.stopPropagation();
+                              handleUpdateTaskStatus(project.id, task.id, "in-progress");
+                            }}>
+                              In Progress
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={(e) => {
+                              e.stopPropagation();
+                              handleUpdateTaskStatus(project.id, task.id, "completed");
+                            }}>
+                              Completed
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
                       </TableCell>
                       <TableCell className="text-right">
                         <span className="flex items-center justify-end">
@@ -185,16 +239,29 @@ const ProjectsList = () => {
                         </span>
                       </TableCell>
                       <TableCell>
-                        <Button 
-                          variant="ghost" 
-                          size="icon" 
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleStartTimer(project, task);
-                          }}
-                        >
-                          <Play className="h-4 w-4" />
-                        </Button>
+                        <div className="flex">
+                          <Button 
+                            variant="ghost" 
+                            size="icon" 
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleStartTimer(project, task);
+                            }}
+                          >
+                            <Play className="h-4 w-4" />
+                          </Button>
+                          <Button 
+                            variant="ghost" 
+                            size="icon"
+                            className="text-red-500 hover:text-red-700"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleDeleteTask(project.id, task.id);
+                            }}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
                       </TableCell>
                     </TableRow>
                   ))}

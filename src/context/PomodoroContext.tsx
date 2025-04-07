@@ -1,4 +1,3 @@
-
 import React, { createContext, useState, useContext, useEffect } from "react";
 import { toast } from "sonner";
 
@@ -52,6 +51,8 @@ interface PomodoroContextType {
   projects: Project[];
   addProject: (name: string) => void;
   addTask: (projectId: string, name: string) => void;
+  updateTaskStatus: (projectId: string, taskId: string, status: ProjectStatus) => void;
+  deleteTask: (projectId: string, taskId: string) => void;
   currentProject: Project | null;
   setCurrentProject: (project: Project | null) => void;
   currentTask: Task | null;
@@ -253,6 +254,47 @@ export const PomodoroProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     return newTask;
   };
   
+  const updateTaskStatus = (projectId: string, taskId: string, status: ProjectStatus) => {
+    setProjects((prevProjects) =>
+      prevProjects.map((project) => {
+        if (project.id === projectId) {
+          return {
+            ...project,
+            tasks: project.tasks.map((task) => {
+              if (task.id === taskId) {
+                return {
+                  ...task,
+                  status,
+                };
+              }
+              return task;
+            }),
+          };
+        }
+        return project;
+      })
+    );
+  };
+  
+  const deleteTask = (projectId: string, taskId: string) => {
+    // If the task being deleted is the current task, clear it
+    if (currentTask && currentTask.id === taskId) {
+      setCurrentTask(null);
+    }
+    
+    setProjects((prevProjects) =>
+      prevProjects.map((project) => {
+        if (project.id === projectId) {
+          return {
+            ...project,
+            tasks: project.tasks.filter((task) => task.id !== taskId),
+          };
+        }
+        return project;
+      })
+    );
+  };
+  
   // Session management
   const startSession = (projectId: string | null, taskId: string | null) => {
     const session: PomodoroSession = {
@@ -401,6 +443,8 @@ export const PomodoroProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     projects,
     addProject,
     addTask,
+    updateTaskStatus,
+    deleteTask,
     currentProject,
     setCurrentProject,
     currentTask,

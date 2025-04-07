@@ -8,30 +8,30 @@ import { PomodoroProvider } from "@/context/PomodoroContext";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
 import { Play, Calendar, ListTodo } from "lucide-react";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 const Index = () => {
+  const isMobile = useIsMobile();
+
   return (
     <PomodoroProvider>
       <div className="container px-4 py-4 sm:px-6 max-w-6xl">
         <Header />
 
-        <div className="grid grid-cols-1 md:grid-cols-[1fr_400px] gap-6">
-          <div>
-            <Timer />
-            
-            <div className="hidden md:block mt-8">
-              <h2 className="text-2xl font-bold mb-4">Projects</h2>
-              <ProjectsList />
+        {!isMobile ? (
+          <div className="grid grid-cols-1 md:grid-cols-[1fr_400px] gap-6">
+            <div>
+              <Timer />
+              <div className="mt-8">
+                <ProjectsList />
+              </div>
+            </div>
+
+            <div>
+              <DailySummary />
             </div>
           </div>
-
-          <div>
-            <DailySummary />
-          </div>
-        </div>
-
-        {/* Mobile tabs for navigation */}
-        <div className="block md:hidden mt-8">
+        ) : (
           <Tabs defaultValue="timer">
             <TabsList className="w-full">
               <TabsTrigger value="timer" className="flex-1">
@@ -60,7 +60,7 @@ const Index = () => {
               </div>
             </TabsContent>
           </Tabs>
-        </div>
+        )}
 
         <Separator className="mt-8 mb-6" />
 
