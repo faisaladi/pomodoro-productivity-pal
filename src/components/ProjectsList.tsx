@@ -15,6 +15,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogFooter,
+  DialogDescription,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -29,6 +30,7 @@ const ProjectsList = () => {
     addTask, 
     currentProject,
     setCurrentProject,
+    currentTask,
     setCurrentTask,
     startSession,
     timerMode,
@@ -166,7 +168,7 @@ const ProjectsList = () => {
                   {project.tasks.map((task) => (
                     <TableRow 
                       key={task.id}
-                      className={currentTask?.id === task.id ? 
+                      className={(currentTask && currentTask.id === task.id) ? 
                         "bg-muted/50" : "hover:bg-muted/30 pl-4"}
                       onClick={() => handleSelectTask(project, task)}
                     >
@@ -208,6 +210,7 @@ const ProjectsList = () => {
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Add Project</DialogTitle>
+            <DialogDescription>Create a new project to track your work</DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
             <div>
@@ -233,6 +236,7 @@ const ProjectsList = () => {
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Add Task</DialogTitle>
+            <DialogDescription>Create a new task for your project</DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
             <div>
