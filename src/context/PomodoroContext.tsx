@@ -1,4 +1,3 @@
-
 import React, { createContext, useState, useContext, useEffect } from "react";
 import { toast } from "sonner";
 
@@ -43,7 +42,7 @@ interface PomodoroContextType {
   setIsRunning: (isRunning: boolean) => void;
   timeRemaining: number;
   setTimeRemaining: (time: number) => void;
-  totalTime: number; // Adding the missing totalTime property
+  totalTime: number; // Adding the totalTime property
   
   // Settings
   pomodoroTime: number;
@@ -273,7 +272,7 @@ export const PomodoroProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         if (project.id === projectId) {
           // If project is completed, mark all tasks as completed
           const updatedTasks = status === "completed" ? 
-            project.tasks.map(task => ({...task, status: "completed"})) : 
+            project.tasks.map(task => ({...task, status: status as ProjectStatus})) : 
             project.tasks;
           
           return {
@@ -292,7 +291,7 @@ export const PomodoroProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         ...prev, 
         status,
         tasks: status === "completed" ? 
-          prev.tasks.map(task => ({...task, status: "completed"})) : 
+          prev.tasks.map(task => ({...task, status: status as ProjectStatus})) : 
           prev.tasks
       } : null);
     }
@@ -560,7 +559,7 @@ export const PomodoroProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     setIsRunning,
     timeRemaining,
     setTimeRemaining,
-    totalTime, // Adding the totalTime value to the context
+    totalTime,
     pomodoroTime,
     shortBreakTime,
     longBreakTime,
