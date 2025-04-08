@@ -1,3 +1,4 @@
+
 import React, { createContext, useState, useContext, useEffect } from "react";
 import { toast } from "sonner";
 
@@ -11,6 +12,7 @@ export interface Project {
   name: string;
   tasks: Task[];
   totalWorkTime: number; // in seconds
+  status: ProjectStatus;
 }
 
 export interface Task {
@@ -41,6 +43,7 @@ interface PomodoroContextType {
   setIsRunning: (isRunning: boolean) => void;
   timeRemaining: number;
   setTimeRemaining: (time: number) => void;
+  totalTime: number; // Adding the missing totalTime property
   
   // Settings
   pomodoroTime: number;
@@ -54,6 +57,7 @@ interface PomodoroContextType {
   addTask: (projectId: string, name: string) => void;
   updateTask: (projectId: string, taskId: string, name: string) => void;
   updateTaskStatus: (projectId: string, taskId: string, status: ProjectStatus) => void;
+  updateProjectStatus: (projectId: string, status: ProjectStatus) => void;
   deleteTask: (projectId: string, taskId: string) => void;
   deleteProject: (projectId: string) => void;
   currentProject: Project | null;
@@ -101,7 +105,15 @@ export const PomodoroProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   // Load data from local storage
   const loadProjects = (): Project[] => {
     const storedProjects = localStorage.getItem(STORAGE_KEYS.PROJECTS);
-    return storedProjects ? JSON.parse(storedProjects) : [];
+    if (storedProjects) {
+      const parsedProjects = JSON.parse(storedProjects);
+      // Ensure all projects have a status property (for backwards compatibility)
+      return parsedProjects.map((project: any) => ({
+        ...project,
+        status: project.status || 'not-started'
+      }));
+    }
+    return [];
   };
 
   const loadSessionHistory = (): PomodoroSession[] => {
@@ -132,6 +144,22 @@ export const PomodoroProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   const [shortBreakTime] = useState(settings.shortBreakTime);
   const [longBreakTime] = useState(settings.longBreakTime);
   
+  // Calculate total time based on timer mode
+  const getTotalTime = () => {
+    switch (timerMode) {
+      case "pomodoro":
+        return pomodoroTime;
+      case "short-break":
+        return shortBreakTime;
+      case "long-break":
+        return longBreakTime;
+      default:
+        return pomodoroTime;
+    }
+  };
+  
+  const totalTime = getTotalTime();
+  
   // Projects and tasks
   const [projects, setProjects] = useState<Project[]>(loadProjects());
   const [currentProject, setCurrentProject] = useState<Project | null>(null);
@@ -160,17 +188,8 @@ export const PomodoroProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   
   // Effect to update timer when mode changes
   useEffect(() => {
-    switch (timerMode) {
-      case "pomodoro":
-        setTimeRemaining(pomodoroTime);
-        break;
-      case "short-break":
-        setTimeRemaining(shortBreakTime);
-        break;
-      case "long-break":
-        setTimeRemaining(longBreakTime);
-        break;
-    }
+    const newTotalTime = getTotalTime();
+    setTimeRemaining(newTotalTime);
   }, [timerMode, pomodoroTime, shortBreakTime, longBreakTime]);
   
   // Timer countdown effect
@@ -227,6 +246,7 @@ export const PomodoroProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       name,
       tasks: [],
       totalWorkTime: 0,
+      status: "not-started",
     };
     
     setProjects((prevProjects) => [...prevProjects, newProject]);
@@ -245,6 +265,37 @@ export const PomodoroProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         return project;
       })
     );
+  };
+
+  const updateProjectStatus = (projectId: string, status: ProjectStatus) => {
+    setProjects((prevProjects) =>
+      prevProjects.map((project) => {
+        if (project.id === projectId) {
+          // If project is completed, mark all tasks as completed
+          const updatedTasks = status === "completed" ? 
+            project.tasks.map(task => ({...task, status: "completed"})) : 
+            project.tasks;
+          
+          return {
+            ...project,
+            status,
+            tasks: updatedTasks,
+          };
+        }
+        return project;
+      })
+    );
+    
+    // Update current project reference if it's the one being updated
+    if (currentProject && currentProject.id === projectId) {
+      setCurrentProject(prev => prev ? {
+        ...prev, 
+        status,
+        tasks: status === "completed" ? 
+          prev.tasks.map(task => ({...task, status: "completed"})) : 
+          prev.tasks
+      } : null);
+    }
   };
 
   const deleteProject = (projectId: string) => {
@@ -280,6 +331,17 @@ export const PomodoroProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       })
     );
     
+    // Update the current project if it's the one being modified
+    if (currentProject && currentProject.id === projectId) {
+      setCurrentProject(prev => {
+        if (!prev) return null;
+        return {
+          ...prev,
+          tasks: [...prev.tasks, newTask]
+        };
+      });
+    }
+    
     return newTask;
   };
 
@@ -303,6 +365,11 @@ export const PomodoroProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         return project;
       })
     );
+    
+    // Update current task if it's the one being modified
+    if (currentTask && currentTask.id === taskId) {
+      setCurrentTask(prev => prev ? {...prev, name} : null);
+    }
   };
   
   const updateTaskStatus = (projectId: string, taskId: string, status: ProjectStatus) => {
@@ -325,6 +392,11 @@ export const PomodoroProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         return project;
       })
     );
+    
+    // Update current task if it's the one being modified
+    if (currentTask && currentTask.id === taskId) {
+      setCurrentTask(prev => prev ? {...prev, status} : null);
+    }
   };
   
   const deleteTask = (projectId: string, taskId: string) => {
@@ -488,12 +560,14 @@ export const PomodoroProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     setIsRunning,
     timeRemaining,
     setTimeRemaining,
+    totalTime, // Adding the totalTime value to the context
     pomodoroTime,
     shortBreakTime,
     longBreakTime,
     projects,
     addProject,
     updateProject,
+    updateProjectStatus,
     deleteProject,
     addTask,
     updateTask,
