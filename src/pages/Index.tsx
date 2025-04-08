@@ -15,60 +15,62 @@ const Index = () => {
 
   return (
     <PomodoroProvider>
-      <div className="container px-4 py-4 sm:px-6 max-w-6xl">
-        <Header />
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
+        <div className="container px-4 py-4 sm:px-6 max-w-6xl mx-auto">
+          <Header />
 
-        <div className="mt-4">
-          {!isMobile ? (
-            <div className="grid grid-cols-1 lg:grid-cols-[1fr_400px] gap-6">
-              <div>
-                <Timer />
-                <div className="mt-8">
-                  <ProjectsList />
-                </div>
-              </div>
-
-              <div>
-                <DailySummary />
-              </div>
-            </div>
-          ) : (
-            <Tabs defaultValue="timer">
-              <TabsList className="w-full">
-                <TabsTrigger value="timer" className="flex-1">
-                  <Play className="mr-2 h-4 w-4" /> Timer
-                </TabsTrigger>
-                <TabsTrigger value="projects" className="flex-1">
-                  <ListTodo className="mr-2 h-4 w-4" /> Projects
-                </TabsTrigger>
-                <TabsTrigger value="summary" className="flex-1">
-                  <Calendar className="mr-2 h-4 w-4" /> Summary
-                </TabsTrigger>
-              </TabsList>
-              <TabsContent value="timer">
-                <div className="mt-4">
+          <div className="mt-6">
+            {!isMobile ? (
+              <div className="grid grid-cols-1 lg:grid-cols-[minmax(280px,1fr)_minmax(280px,400px)] gap-6">
+                <div className="flex flex-col gap-8">
                   <Timer />
+                  <div>
+                    <ProjectsList />
+                  </div>
                 </div>
-              </TabsContent>
-              <TabsContent value="projects">
-                <div className="mt-4">
-                  <ProjectsList />
-                </div>
-              </TabsContent>
-              <TabsContent value="summary">
-                <div className="mt-4">
+
+                <div>
                   <DailySummary />
                 </div>
-              </TabsContent>
-            </Tabs>
-          )}
+              </div>
+            ) : (
+              <Tabs defaultValue="timer" className="w-full">
+                <TabsList className="w-full rounded-lg mb-4 p-1 bg-white/80 backdrop-blur-sm shadow-sm">
+                  <TabsTrigger value="timer" className="flex-1 py-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-tomato-500 data-[state=active]:to-tomato-600 data-[state=active]:text-white rounded-md transition-all">
+                    <Play className="mr-2 h-4 w-4" /> Timer
+                  </TabsTrigger>
+                  <TabsTrigger value="projects" className="flex-1 py-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-blue-600 data-[state=active]:text-white rounded-md transition-all">
+                    <ListTodo className="mr-2 h-4 w-4" /> Projects
+                  </TabsTrigger>
+                  <TabsTrigger value="summary" className="flex-1 py-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-indigo-600 data-[state=active]:to-indigo-700 data-[state=active]:text-white rounded-md transition-all">
+                    <Calendar className="mr-2 h-4 w-4" /> Summary
+                  </TabsTrigger>
+                </TabsList>
+                <TabsContent value="timer" className="mt-0">
+                  <div className="mt-2">
+                    <Timer />
+                  </div>
+                </TabsContent>
+                <TabsContent value="projects" className="mt-0">
+                  <div className="mt-2">
+                    <ProjectsList />
+                  </div>
+                </TabsContent>
+                <TabsContent value="summary" className="mt-0">
+                  <div className="mt-2">
+                    <DailySummary />
+                  </div>
+                </TabsContent>
+              </Tabs>
+            )}
+          </div>
+
+          <Separator className="my-8 opacity-50" />
+
+          <footer className="text-center text-gray-500 text-sm pb-4">
+            <p>Pomodoro Productivity Pal &copy; {new Date().getFullYear()}</p>
+          </footer>
         </div>
-
-        <Separator className="mt-8 mb-6" />
-
-        <footer className="text-center text-gray-500 text-sm">
-          <p>Pomodoro Productivity Pal &copy; {new Date().getFullYear()}</p>
-        </footer>
       </div>
     </PomodoroProvider>
   );
