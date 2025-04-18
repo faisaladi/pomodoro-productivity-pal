@@ -1,3 +1,4 @@
+
 import React, { useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -90,9 +91,9 @@ const Timer = () => {
   }, []);
 
   return (
-    <Card className="w-full min-w-[200px] max-w-md shadow-xl border-0 bg-gradient-to-br from-white to-gray-50 rounded-xl overflow-hidden mx-auto">
-      <CardContent className="p-4 sm:p-6">
-        <div className="relative mb-6 sm:mb-8">
+    <Card className="w-full min-w-[80px] shadow-xl border-0 bg-gradient-to-br from-white to-gray-50 rounded-xl overflow-hidden mx-auto">
+      <CardContent className="p-2 sm:p-6">
+        <div className="relative mb-3 sm:mb-8">
           <div 
             className={cn(
               "rounded-2xl w-full max-w-[16rem] aspect-square flex flex-col items-center justify-center mx-auto mb-2 text-white transition-all shadow-lg overflow-hidden bg-gradient-to-br",
@@ -111,17 +112,17 @@ const Timer = () => {
             
             {isRunning && (
               <>
-                <div className="absolute bottom-4 left-8 w-4 h-4 rounded-full bg-white/20 animate-ping-slow"></div>
-                <div className="absolute bottom-12 right-12 w-2 h-2 rounded-full bg-white/20 animate-ping-slow" style={{animationDelay: "0.5s"}}></div>
-                <div className="absolute bottom-20 left-16 w-3 h-3 rounded-full bg-white/20 animate-ping-slow" style={{animationDelay: "1.2s"}}></div>
+                <div className="absolute bottom-4 left-8 w-4 h-4 rounded-full bg-white/20 animate-ping-slow hidden sm:block"></div>
+                <div className="absolute bottom-12 right-12 w-2 h-2 rounded-full bg-white/20 animate-ping-slow hidden sm:block" style={{animationDelay: "0.5s"}}></div>
+                <div className="absolute bottom-20 left-16 w-3 h-3 rounded-full bg-white/20 animate-ping-slow hidden sm:block" style={{animationDelay: "1.2s"}}></div>
               </>
             )}
             
             <div className="relative z-10">
-              <div className="text-xs sm:text-sm font-medium mb-1">{modeNames[timerMode]}</div>
-              <div className="text-4xl sm:text-6xl font-bold tracking-tighter">{formatTime(timeRemaining)}</div>
+              <div className="text-xs font-medium mb-1">{modeNames[timerMode]}</div>
+              <div className="text-2xl sm:text-4xl md:text-6xl font-bold tracking-tighter">{formatTime(timeRemaining)}</div>
               {currentProject && (
-                <div className="text-xs sm:text-sm mt-2 max-w-[80%] truncate">
+                <div className="text-xs mt-1 max-w-[80%] truncate">
                   {currentProject.name}
                   {currentTask && `: ${currentTask.name}`}
                 </div>
@@ -140,98 +141,98 @@ const Timer = () => {
           />
         </div>
 
-        <div className="flex justify-center space-x-2 sm:space-x-3 mb-6 sm:mb-8">
+        <div className="flex justify-center space-x-1 sm:space-x-3 mb-3 sm:mb-8">
           <Button
             variant="default"
             size="icon"
             onClick={handleStartPause}
-            className={cn("h-14 w-14 rounded-full shadow-md transition-transform hover:scale-105", {
+            className={cn("h-8 w-8 sm:h-14 sm:w-14 rounded-full shadow-md transition-transform hover:scale-105", {
               "bg-tomato-500 hover:bg-tomato-600": !isRunning && timerMode === "pomodoro",
               "bg-blue-500 hover:bg-blue-600": !isRunning && timerMode === "short-break",
               "bg-indigo-600 hover:bg-indigo-700": !isRunning && timerMode === "long-break",
               "bg-amber-500 hover:bg-amber-600": isRunning,
             })}
           >
-            {isRunning ? <Pause size={28} /> : <Play size={28} />}
+            {isRunning ? <Pause size={20} /> : <Play size={20} />}
           </Button>
 
           {currentSession && (
             <Button
               variant="outline"
               size="icon"
-              className="h-14 w-14 rounded-full border-2 shadow-md hover:bg-gray-100"
+              className="h-8 w-8 sm:h-14 sm:w-14 rounded-full border-2 shadow-md hover:bg-gray-100"
               onClick={() => handleEndSession("medium", false)}
             >
-              <TimerOff size={24} />
+              <TimerOff size={20} />
             </Button>
           )}
         </div>
 
-        <div className="grid grid-cols-3 gap-1 sm:gap-3 mb-4 sm:mb-6 text-xs sm:text-sm">
+        <div className="grid grid-cols-3 gap-1 sm:gap-3 mb-2 sm:mb-6 text-[10px] sm:text-sm">
           <Button
             variant={timerMode === "pomodoro" ? "default" : "outline"}
             className={cn(
               timerMode === "pomodoro" ? modeButtonColors.pomodoro : "hover:bg-gray-100", 
-              "font-medium rounded-full"
+              "font-medium rounded-full p-1 sm:p-2 h-auto"
             )}
             onClick={() => handleModeChange("pomodoro")}
           >
-            <Clock size={16} className="mr-2" /> Pomodoro
+            <Clock size={12} className="sm:mr-2" /> <span className="hidden sm:inline">Pomodoro</span>
           </Button>
           <Button
             variant={timerMode === "short-break" ? "default" : "outline"}
             className={cn(
               timerMode === "short-break" ? modeButtonColors["short-break"] : "hover:bg-gray-100",
-              "font-medium rounded-full"
+              "font-medium rounded-full p-1 sm:p-2 h-auto"
             )}
             onClick={() => handleModeChange("short-break")}
           >
-            <Coffee size={16} className="mr-2" /> Short
+            <Coffee size={12} className="sm:mr-2" /> <span className="hidden sm:inline">Short</span>
           </Button>
           <Button
             variant={timerMode === "long-break" ? "default" : "outline"}
             className={cn(
               timerMode === "long-break" ? modeButtonColors["long-break"] : "hover:bg-gray-100",
-              "font-medium rounded-full"
+              "font-medium rounded-full p-1 sm:p-2 h-auto"
             )}
             onClick={() => handleModeChange("long-break")}
           >
-            <TimerReset size={16} className="mr-2" /> Long
+            <TimerReset size={12} className="sm:mr-2" /> <span className="hidden sm:inline">Long</span>
           </Button>
         </div>
 
         {currentSession && timerMode === "pomodoro" && (
-          <div className="border-t border-gray-200 pt-3 sm:pt-4 mt-2">
-            <h3 className="font-medium text-xs sm:text-sm mb-2 sm:mb-3">Rate your productivity:</h3>
-            <div className="flex justify-between gap-2 mb-3">
+          <div className="border-t border-gray-200 pt-2 sm:pt-4 mt-2">
+            <h3 className="font-medium text-[10px] sm:text-sm mb-1 sm:mb-3">Rate your productivity:</h3>
+            <div className="flex justify-between gap-1 sm:gap-2 mb-2 sm:mb-3">
               <Button
                 variant="outline"
-                className="flex-1 rounded-full border-2 border-productivity-high text-productivity-high hover:bg-productivity-high hover:text-white transition-colors"
+                className="flex-1 rounded-full border-2 border-productivity-high text-productivity-high hover:bg-productivity-high hover:text-white transition-colors p-1 h-auto text-[10px] sm:text-xs"
                 onClick={() => handleEndSession("high", false)}
               >
-                <Check size={16} className="mr-1" /> High
+                <Check size={12} className="sm:mr-1" /> <span className="hidden sm:inline">High</span>
               </Button>
               <Button
                 variant="outline"
-                className="flex-1 rounded-full border-2 border-productivity-medium text-productivity-medium hover:bg-productivity-medium hover:text-white transition-colors"
+                className="flex-1 rounded-full border-2 border-productivity-medium text-productivity-medium hover:bg-productivity-medium hover:text-white transition-colors p-1 h-auto text-[10px] sm:text-xs"
                 onClick={() => handleEndSession("medium", false)}
               >
-                <Check size={16} className="mr-1" /> Medium
+                <Check size={12} className="sm:mr-1" /> <span className="hidden sm:inline">Medium</span>
               </Button>
               <Button
                 variant="outline"
-                className="flex-1 rounded-full border-2 border-productivity-low text-productivity-low hover:bg-productivity-low hover:text-white transition-colors"
+                className="flex-1 rounded-full border-2 border-productivity-low text-productivity-low hover:bg-productivity-low hover:text-white transition-colors p-1 h-auto text-[10px] sm:text-xs"
                 onClick={() => handleEndSession("low", false)}
               >
-                <Check size={16} className="mr-1" /> Low
+                <Check size={12} className="sm:mr-1" /> <span className="hidden sm:inline">Low</span>
               </Button>
             </div>
             <Button
               variant="outline"
-              className="w-full rounded-full border-2 border-red-300 text-red-500 hover:bg-red-500 hover:text-white transition-colors"
+              className="w-full rounded-full border-2 border-red-300 text-red-500 hover:bg-red-500 hover:text-white transition-colors p-1 h-auto text-[10px] sm:text-xs"
               onClick={() => handleEndSession("distracted", true)}
             >
-              <X size={16} className="mr-1" /> Distracted
+              <X size={12} className="sm:mr-1" /> <span className="hidden sm:inline">Distracted</span>
             </Button>
           </div>
         )}
