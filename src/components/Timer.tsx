@@ -1,4 +1,3 @@
-
 import React, { useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -32,10 +31,8 @@ const Timer = () => {
     endSession,
   } = usePomodoroContext();
 
-  // Calculate progress percentage
   const progressPercentage = Math.min(100, Math.max(0, (timeRemaining / totalTime) * 100));
 
-  // Define colors based on timer mode
   const modeColors = {
     pomodoro: "bg-tomato-500 from-tomato-400 to-tomato-600",
     "short-break": "bg-blue-500 from-blue-400 to-blue-600",
@@ -54,7 +51,6 @@ const Timer = () => {
     "long-break": "Long Break",
   };
 
-  // Handle start/pause button click
   const handleStartPause = () => {
     if (!isRunning && !currentSession) {
       if (!currentProject) {
@@ -70,17 +66,14 @@ const Timer = () => {
     }
   };
 
-  // Handle mode change
   const handleModeChange = (mode: TimerMode) => {
     if (currentSession) {
-      // If there's an active session, end it first
-      endSession("medium", false); // Default productivity level
+      endSession("medium", false);
     }
     
     setTimerMode(mode);
   };
 
-  // Handle session end with productivity feedback
   const handleEndSession = (productivityLevel: ProductivityLevel, isDistracted: boolean) => {
     if (currentSession) {
       endSession(productivityLevel, isDistracted);
@@ -90,7 +83,6 @@ const Timer = () => {
     }
   };
 
-  // Request notification permission when the component mounts
   useEffect(() => {
     if (Notification.permission !== "granted" && Notification.permission !== "denied") {
       Notification.requestPermission();
@@ -98,17 +90,15 @@ const Timer = () => {
   }, []);
 
   return (
-    <Card className="w-full max-w-md shadow-xl border-0 bg-gradient-to-br from-white to-gray-50 rounded-xl overflow-hidden mx-auto">
-      <CardContent className="p-6">
-        {/* Timer display */}
-        <div className="relative mb-8">
+    <Card className="w-full min-w-[200px] max-w-md shadow-xl border-0 bg-gradient-to-br from-white to-gray-50 rounded-xl overflow-hidden mx-auto">
+      <CardContent className="p-4 sm:p-6">
+        <div className="relative mb-6 sm:mb-8">
           <div 
             className={cn(
-              "rounded-2xl w-64 h-64 flex flex-col items-center justify-center mx-auto mb-2 text-white transition-all shadow-lg overflow-hidden bg-gradient-to-br",
+              "rounded-2xl w-full max-w-[16rem] aspect-square flex flex-col items-center justify-center mx-auto mb-2 text-white transition-all shadow-lg overflow-hidden bg-gradient-to-br",
               modeColors[timerMode]
             )}
           >
-            {/* Liquid fill animation */}
             <div 
               className="absolute inset-0 bg-white opacity-30 transition-all duration-500 ease-linear rounded-2xl"
               style={{ 
@@ -119,7 +109,6 @@ const Timer = () => {
               <div className="absolute bottom-0 left-0 right-0 h-2 bg-white/20 rounded-full"></div>
             </div>
             
-            {/* Bubbles animation for liquid effect */}
             {isRunning && (
               <>
                 <div className="absolute bottom-4 left-8 w-4 h-4 rounded-full bg-white/20 animate-ping-slow"></div>
@@ -129,10 +118,10 @@ const Timer = () => {
             )}
             
             <div className="relative z-10">
-              <div className="text-sm font-medium mb-1">{modeNames[timerMode]}</div>
-              <div className="text-6xl font-bold tracking-tighter">{formatTime(timeRemaining)}</div>
+              <div className="text-xs sm:text-sm font-medium mb-1">{modeNames[timerMode]}</div>
+              <div className="text-4xl sm:text-6xl font-bold tracking-tighter">{formatTime(timeRemaining)}</div>
               {currentProject && (
-                <div className="text-sm mt-2 max-w-[80%] truncate">
+                <div className="text-xs sm:text-sm mt-2 max-w-[80%] truncate">
                   {currentProject.name}
                   {currentTask && `: ${currentTask.name}`}
                 </div>
@@ -140,10 +129,9 @@ const Timer = () => {
             </div>
           </div>
 
-          {/* Progress indicator */}
           <Progress 
             value={progressPercentage} 
-            className={cn("h-2 w-64 mx-auto rounded-full", {
+            className={cn("h-2 w-full mx-auto rounded-full", {
               "bg-gray-200": true,
               "[&>div]:bg-tomato-500": timerMode === "pomodoro",
               "[&>div]:bg-blue-500": timerMode === "short-break",
@@ -152,8 +140,7 @@ const Timer = () => {
           />
         </div>
 
-        {/* Timer controls */}
-        <div className="flex justify-center space-x-3 mb-8">
+        <div className="flex justify-center space-x-2 sm:space-x-3 mb-6 sm:mb-8">
           <Button
             variant="default"
             size="icon"
@@ -180,8 +167,7 @@ const Timer = () => {
           )}
         </div>
 
-        {/* Timer mode selection */}
-        <div className="grid grid-cols-3 gap-3 mb-6">
+        <div className="grid grid-cols-3 gap-1 sm:gap-3 mb-4 sm:mb-6 text-xs sm:text-sm">
           <Button
             variant={timerMode === "pomodoro" ? "default" : "outline"}
             className={cn(
@@ -214,10 +200,9 @@ const Timer = () => {
           </Button>
         </div>
 
-        {/* Productivity feedback - only show when in a pomodoro session */}
         {currentSession && timerMode === "pomodoro" && (
-          <div className="border-t border-gray-200 pt-4 mt-2">
-            <h3 className="font-medium text-sm mb-3">Rate your productivity:</h3>
+          <div className="border-t border-gray-200 pt-3 sm:pt-4 mt-2">
+            <h3 className="font-medium text-xs sm:text-sm mb-2 sm:mb-3">Rate your productivity:</h3>
             <div className="flex justify-between gap-2 mb-3">
               <Button
                 variant="outline"
