@@ -20,19 +20,19 @@ const Index = () => {
 
   return (
     <PomodoroProvider>
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 min-w-[100px]">
         <ResizablePanelGroup
           direction={isMobile ? "vertical" : "horizontal"}
           className="min-h-screen w-full"
         >
-          <ResizablePanel defaultSize={100} minSize={10}>
+          <ResizablePanel defaultSize={100} minSize={5}>
             <div className="w-full h-full">
-              <div className="p-0 sm:p-2 max-w-full mx-auto">
+              <div className="p-0 max-w-full mx-auto">
                 <Header />
 
-                <div className="mt-1 sm:mt-3">
+                <div className="mt-0">
                   {!isMobile ? (
-                    <div className="flex flex-col gap-2">
+                    <div className="flex flex-col gap-1">
                       <Timer />
                       <div className="min-w-0">
                         <ProjectsList />
@@ -73,10 +73,10 @@ const Index = () => {
                   )}
                 </div>
 
-                <Separator className="my-2 opacity-50" />
+                <Separator className="my-1 opacity-50" />
 
-                <footer className="text-center text-gray-500 text-xs pb-1">
-                  <p>Pomodoro Pal &copy; {new Date().getFullYear()}</p>
+                <footer className="text-center text-gray-500 text-[8px] pb-0.5 super-compact">
+                  <p>Pomodoro Pal</p>
                 </footer>
               </div>
             </div>
