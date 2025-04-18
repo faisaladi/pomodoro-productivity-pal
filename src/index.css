@@ -49,15 +49,25 @@
 @layer base {
   * {
     @apply border-border;
+    min-width: 0; /* Add this to ensure no element has a minimum width */
   }
 
   body {
     @apply bg-background text-foreground;
+    min-width: 0; /* Ensure body doesn't have a minimum width */
+    width: 100%;
+    overflow-x: hidden;
   }
   
   /* Add smooth scrolling to html */
   html {
     scroll-behavior: smooth;
+    min-width: 0; /* Ensure html doesn't have a minimum width */
+  }
+
+  /* Reset any potential minimum widths */
+  div, section, main, article, header, footer, nav {
+    min-width: 0;
   }
 }
 
@@ -73,6 +83,8 @@
   margin: 0;
   padding: 0;
   text-align: left;
+  min-width: 0; /* Ensure root doesn't have a minimum width */
+  width: 100%;
 }
 
 /* Custom animation for bubbles and liquid effect */
@@ -89,4 +101,11 @@
 
 .animate-ping-slow {
   animation: ping-slow 3s cubic-bezier(0, 0, 0.2, 1) infinite;
+}
+
+/* Ensure we can go super small */
+.super-compact {
+  font-size: 8px;
+  padding: 0;
+  margin: 0;
 }
